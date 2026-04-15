@@ -1,0 +1,21 @@
+# バイナリファイル
+*.pptx
+*.xlsx
+*.potx
+
+# Playwright MCP キャッシュ
+.playwright-mcp/
+
+# バックアップ・ログ
+*.bak
+*.log
+
+# OS 生成ファイル
+Thumbs.db
+.DS_Store
+
+# Node.js（スクリプト用）
+node_modules/
+
+# 一時作業ファイル
+ブログアイデアリスト
