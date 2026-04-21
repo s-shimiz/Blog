@@ -7,6 +7,11 @@ tags:
   - PowerPlatform
   - AI
 private: true
+id: null
+updated_at: ""
+organization_url_name: null
+slide: false
+ignorePublish: false
 ---
 
 ## はじめに
