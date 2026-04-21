@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - "qiita/**"
+      - "public/**"
   workflow_dispatch:
 
 permissions:
@@ -27,4 +27,4 @@ jobs:
       - uses: increments/qiita-cli/actions/publish@v1
         with:
           qiita-token: ${{ secrets.QIITA_TOKEN }}
-          root: "qiita"
+          root: "."

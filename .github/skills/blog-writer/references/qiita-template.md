@@ -23,9 +23,9 @@ private: true
 
 ## ファイル命名
 
-`qiita/yyyymmdd_slug.md`
+`public/yyyymmdd_slug.md`
 
-例: `qiita/20260217_agent-builder-vs-copilot-studio.md`
+例: `public/20260217_agent-builder-vs-copilot-studio.md`
 
 ## 記事テンプレート
 

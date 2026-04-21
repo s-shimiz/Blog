@@ -1,6 +1,6 @@
 ---
-description: "Qiita 記事の作成・編集時に適用。Qiita フロントマター、タグ規約、命名規則を含む。Use when: Qiita 記事を書く、qiita/ 配下のファイルを編集"
-applyTo: "qiita/**/*.md"
+description: "Qiita 記事の作成・編集時に適用。Qiita フロントマター、タグ規約、命名規則を含む。Use when: Qiita 記事を書く、public/ 配下のファイルを編集"
+applyTo: "public/**/*.md"
 ---
 
 # Qiita 記事ルール
@@ -32,6 +32,7 @@ private: true
 
 `yyyymmdd_slug.md`（例: `20260217_agent-builder-vs-copilot-studio.md`）
 
+- `public/` ディレクトリに配置する（Qiita CLI の管理ディレクトリ）
 - 先頭に作成日を付与
 - 日付の後にはハイフン区切りの slug を続ける
 

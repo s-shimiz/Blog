@@ -3,13 +3,12 @@
 ## プロジェクト概要
 
 Microsoft 365 Copilot および Copilot Studio に関する技術ブログ記事の原稿を管理するリポジトリ。
-記事は主に **Qiita** に投稿する（必要に応じて Zenn にも投稿）。
+記事は **Qiita** に投稿する。Qiita CLI で投稿・管理を行う。
 
 ## ディレクトリ構成
 
 ```
-qiita/             # Qiita 用の記事 (メイン投稿先)
-articles/          # Zenn 形式の記事 (必要に応じて)
+public/            # Qiita 用の記事（Qiita CLI の管理ディレクトリ）
 images/            # 記事で使用するスクリーンショット・図
 images/verification/ # 検証テストのスクリーンショット
 verification/      # Copilot Studio 検証レポート
@@ -20,9 +19,7 @@ Template/          # PowerPoint テンプレート
 
 ## ファイル命名規則
 
-- **Qiita**: `qiita/yyyymmdd_slug.md`（例: `20260217_agent-builder-vs-copilot-studio.md`）
-- **Zenn**: `articles/slug.md`（ケバブケース、例: `mcp-azurefunctions.md`）
-- シリーズ記事（Zenn）は `slug-001.md` のように 3 桁の連番を付ける
+- **Qiita**: `public/yyyymmdd_slug.md`（例: `20260217_agent-builder-vs-copilot-studio.md`）
 
 ## 執筆規約
 
@@ -40,4 +37,3 @@ Template/          # PowerPoint テンプレート
 - **記事テンプレート・文体ルール・執筆ワークフロー**: `.github/skills/blog-writer/` スキルを参照
 - **レビュー観点**: `.github/skills/article-reviewer/` スキルを参照
 - **Copilot Studio 検証**: `.github/skills/copilot-studio-verifier/` スキルを参照
-- **プラットフォーム別ルール**: `.github/instructions/` の各 instructions ファイルを参照
