@@ -18,6 +18,8 @@ description: >-
 |--------|-------------|-------------|
 | Qiita | [Qiita テンプレート](./references/qiita-template.md) | `public/yyyymmdd_slug.md` |
 
+下書き・執筆中の記事は `drafts/yyyymmdd_slug.md` に配置する。投稿準備ができたら `public/` に移動する。
+
 テンプレートを読み込んでフロントマターとプラットフォーム固有の記法を確認すること。
 
 ---

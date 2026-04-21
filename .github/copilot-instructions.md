@@ -8,7 +8,8 @@ Microsoft 365 Copilot および Copilot Studio に関する技術ブログ記事
 ## ディレクトリ構成
 
 ```
-public/            # Qiita 用の記事（Qiita CLI の管理ディレクトリ）
+public/            # Qiita 用の記事（Qiita CLI の管理ディレクトリ。投稿済み記事のみ配置）
+drafts/            # 下書き・執筆中の記事（投稿準備ができたら public/ に移動）
 images/            # 記事で使用するスクリーンショット・図
 images/verification/ # 検証テストのスクリーンショット
 verification/      # Copilot Studio 検証レポート
@@ -20,6 +21,7 @@ Template/          # PowerPoint テンプレート
 ## ファイル命名規則
 
 - **Qiita**: `public/yyyymmdd_slug.md`（例: `20260217_agent-builder-vs-copilot-studio.md`）
+- **下書き**: `drafts/yyyymmdd_slug.md`（投稿準備ができたら `public/` に移動）
 
 ## 執筆規約
 
