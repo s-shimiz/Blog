@@ -1,14 +1,14 @@
 ---
-title: "【初心者向け】宣言型エージェントの指示文（Instructions）の書き方ベストプラクティスまとめ"
+title: 【初心者向け】宣言型エージェントの指示文（Instructions）の書き方ベストプラクティスまとめ
 tags:
-  - Microsoft365
-  - Copilot
-  - CopilotStudio
-  - GPT
   - AI
+  - gpt
+  - Microsoft365
+  - copilot
+  - CopilotStudio
 private: true
-id: null
-updated_at: ""
+updated_at: '2026-04-21T16:26:44+09:00'
+id: 4d06ba9eef9141dda9b4
 organization_url_name: null
 slide: false
 ignorePublish: false

@@ -1,14 +1,14 @@
 ---
-title: "【初心者向け】GPT 5.1 で宣言型エージェントはどう変わる？モデル変更のポイントと対応方法をやさしく解説"
+title: 【初心者向け】GPT 5.1 で宣言型エージェントはどう変わる？モデル変更のポイントと対応方法をやさしく解説
 tags:
-  - Microsoft365
-  - Copilot
-  - CopilotStudio
-  - GPT
   - AI
+  - gpt
+  - Microsoft365
+  - copilot
+  - CopilotStudio
 private: true
-id: null
-updated_at: ""
+updated_at: '2026-04-21T16:26:44+09:00'
+id: 1464aadcb4dd953b872e
 organization_url_name: null
 slide: false
 ignorePublish: false

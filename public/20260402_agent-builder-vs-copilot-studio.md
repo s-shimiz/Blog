@@ -1,14 +1,16 @@
 ---
-title: "Microsoft 365 Copilot ライセンスで作るエージェント ― Agent Builder と Copilot Studio の違いと使い分け（2026年4月版）"
+title: >-
+  Microsoft 365 Copilot ライセンスで作るエージェント ― Agent Builder と Copilot Studio
+  の違いと使い分け（2026年4月版）
 tags:
-  - Microsoft365
-  - Copilot
-  - CopilotStudio
-  - PowerPlatform
   - AI
+  - PowerPlatform
+  - Microsoft365
+  - copilot
+  - CopilotStudio
 private: true
-id: null
-updated_at: ""
+updated_at: '2026-04-21T16:26:44+09:00'
+id: 50fb92cc96c826bcc24c
 organization_url_name: null
 slide: false
 ignorePublish: false
