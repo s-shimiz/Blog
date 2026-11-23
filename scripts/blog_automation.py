@@ -9,6 +9,7 @@
 """
 
 import argparse
+import json
 import os
 import re
 import subprocess
@@ -151,6 +152,29 @@ def add_idea(body, comment):
     return new_body, number
 
 
+def format_review_comments(raw):
+    """GitHub API のレビューコメント（`gh api --paginate` の出力）を、修正指示用の箇条書きにする。"""
+    comments, decoder, pos, raw = [], json.JSONDecoder(), 0, raw.strip()
+    while pos < len(raw):
+        page, pos = decoder.raw_decode(raw, pos)
+        comments += page
+        while pos < len(raw) and raw[pos].isspace():
+            pos += 1
+    out = []
+    for c in comments:
+        body = (c.get("body") or "").strip()
+        if not body:
+            continue
+        line = c.get("line") or c.get("original_line")
+        start = c.get("start_line") or c.get("original_start_line")
+        where = f"{start}〜{line} 行目" if start and start != line else (f"{line} 行目" if line else "ファイル全体")
+        quoted = "\n".join(f"  > {l}" for l in body.splitlines())
+        out.append(f"- `{c.get('path', '')}` の {where}:\n{quoted}")
+    if not out:
+        return ""
+    return "\n\n### 記事の行に付けたコメント\n" + "\n".join(out) + "\n"
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -171,6 +195,8 @@ def main():
     p.add_argument("--body-file", required=True, help="現在の Issue 本文（このファイルを上書きする）")
     p.add_argument("--idea-file", required=True, help="アイデア（1 行目: タイトル、2 行目以降: メモ）")
 
+    sub.add_parser("review-comments", help="標準入力のレビューコメント（JSON）を修正指示の箇条書きにする")
+
     a = ap.parse_args()
     if a.cmd == "find-article":
         print(pick_article(git_changed_files(a.base)))
@@ -190,6 +216,8 @@ def main():
         with open(a.body_file, "w", encoding="utf-8", newline="\n") as f:
             f.write(new_body)
         print(number)
+    elif a.cmd == "review-comments":
+        sys.stdout.write(format_review_comments(sys.stdin.read()))
 
 
 if __name__ == "__main__":

@@ -81,6 +81,18 @@ class BlogAutomationTest(unittest.TestCase):
             ba.publish("drafts/20261123_test-slug.md", "owner/repo", "main", private=True)
         self.assertTrue(os.path.exists(os.path.join(self.root, "drafts/20261123_test-slug.md")))
 
+    def test_format_review_comments_reads_paginated_pages(self):
+        raw = (
+            '[{"path": "drafts/a.md", "line": 12, "body": "ここは硬い\\n例を足して"}]\n'
+            '[{"path": "drafts/a.md", "start_line": 3, "line": 5, "body": "削除して"},'
+            ' {"path": "drafts/a.md", "line": 7, "body": "  "}]'
+        )
+        out = ba.format_review_comments(raw)
+        self.assertIn("`drafts/a.md` の 12 行目:\n  > ここは硬い\n  > 例を足して", out)
+        self.assertIn("`drafts/a.md` の 3〜5 行目:\n  > 削除して", out)
+        self.assertNotIn("7 行目", out)
+        self.assertEqual(ba.format_review_comments("[]"), "")
+
     def test_add_idea_inserts_next_number_before_footer(self):
         body = "## 今週のネタ候補\n\n### 1. A\n- x\n\n### 2. B\n- y\n\n---\n### 次の操作\n- `/write 番号`\n"
         new_body, number = ba.add_idea(body, "自分のネタ\n画面を多めに\n\nデモも入れる")

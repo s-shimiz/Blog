@@ -219,6 +219,11 @@ jobs:
         if: env.CMD == '/revise'
         run: |
           printf '%s\n' "$COMMENT" | sed '1s#^/revise[[:space:]]*##' > .automation-tmp/feedback.md
+          if [ "$GITHUB_EVENT_NAME" = pull_request_review ]; then
+            # VS Code で記事の行に付けたコメント（同じレビューに含まれるもの）も修正指示として渡す
+            gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$NUMBER/reviews/${{ github.event.review.id }}/comments" \
+              | python3 scripts/blog_automation.py review-comments >> .automation-tmp/feedback.md
+          fi
           if ! grep -q '[^[:space:]]' .automation-tmp/feedback.md; then
             gh pr comment "$NUMBER" --body "使い方: \`/revise 修正してほしい内容や感想\`（複数行可）"
             echo "HANDLED=true" >> "$GITHUB_ENV"
