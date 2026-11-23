@@ -6,6 +6,12 @@
 # Playwright MCP キャッシュ
 .playwright-mcp/
 
+# マスク前のスクリーンショット（コミットしない）
+images/_raw/
+
+# 記事自動化ワークフローの一時ファイル
+.automation-tmp/
+
 # バックアップ・ログ
 *.bak
 *.log

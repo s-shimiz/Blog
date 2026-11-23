@@ -1,0 +1,96 @@
+# 記事のネタ候補を Issue として作成する
+#   - 毎週月曜 9:00（日本時間）に自動実行
+#   - 任意のタイミング: Actions 画面の「Run workflow」（テーマを指定可）、
+#     または任意の Issue に `/ideas テーマ` とコメント（article-commands.yml から呼び出し）
+name: Article ideas
+
+on:
+  schedule:
+    - cron: "0 0 * * 1" # UTC 月曜 0:00 = JST 月曜 9:00
+  workflow_dispatch:
+    inputs:
+      theme:
+        description: "テーマや方向性（任意。例: Copilot Studio のエージェントフロー）"
+        required: false
+        default: ""
+  workflow_call:
+    inputs:
+      theme:
+        type: string
+        required: false
+        default: ""
+      reply_to:
+        description: "結果を返信する Issue 番号"
+        type: string
+        required: false
+        default: ""
+    secrets:
+      COPILOT_PAT:
+        required: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  ideas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      THEME_INPUT: ${{ inputs.theme }}
+      REPLY_TO: ${{ inputs.reply_to }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Prepare
+        run: |
+          mkdir -p .automation-tmp
+          # `/ideas` コメントから呼ばれた場合はコマンド部分を取り除く
+          printf '%s\n' "$THEME_INPUT" | sed '1s#^/ideas[[:space:]]*##' > .automation-tmp/theme.md
+          if grep -q '[^[:space:]]' .automation-tmp/theme.md; then
+            echo "THEME_FILE=$GITHUB_WORKSPACE/.automation-tmp/theme.md" >> "$GITHUB_ENV"
+            theme_title=$(grep -m1 '[^[:space:]]' .automation-tmp/theme.md)
+            echo "ISSUE_TITLE=ネタ候補 ($(TZ=Asia/Tokyo date +%F)) テーマ: ${theme_title:0:40}" >> "$GITHUB_ENV"
+          elif [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            echo "ISSUE_TITLE=今週のネタ候補 ($(TZ=Asia/Tokyo date +%F))" >> "$GITHUB_ENV"
+          else
+            echo "ISSUE_TITLE=ネタ候補 ($(TZ=Asia/Tokyo date '+%F %H:%M'))" >> "$GITHUB_ENV"
+          fi
+          echo "OUTPUT_FILE=$GITHUB_WORKSPACE/.automation-tmp/ideas.md" >> "$GITHUB_ENV"
+
+      - name: Generate ideas
+        uses: ./.github/actions/copilot-run
+        with:
+          prompt-file: .github/automation/prompts/ideas.md
+          token: ${{ secrets.COPILOT_PAT }}
+
+      - name: Create issue
+        run: |
+          test -s "$OUTPUT_FILE" || { echo "::error::ネタ候補が生成されませんでした"; exit 1; }
+          gh label create article-idea --color 0E8A16 --description "記事のネタ候補" --force
+          {
+            cat "$OUTPUT_FILE"
+            cat <<'EOF'
+
+          ---
+          ### 次の操作
+          - 書きたいネタの番号を `/write 番号` とコメントしてください（例: `/write 2`）。2 行目以降に補足を書くと、下書きに反映されます。
+          - 自分のアイデアを候補に加えるときは `/add-idea タイトル` とコメントしてください（2 行目以降はメモ）。次の番号で追加されます。
+          - 別のテーマで候補を出し直すときは `/ideas テーマ` とコメントしてください。新しい Issue が作られます。
+          - 下書きは Pull Request として作成され、自動レビューの結果もコメントされます。
+          EOF
+          } > .automation-tmp/issue-body.md
+          url=$(gh issue create --title "$ISSUE_TITLE" --label article-idea --body-file .automation-tmp/issue-body.md)
+          echo "ISSUE_URL=$url" >> "$GITHUB_ENV"
+          if [ -n "$REPLY_TO" ]; then
+            gh issue comment "$REPLY_TO" --body "ネタ候補を作成しました: $url"
+          fi
+
+      - name: Report failure
+        if: failure() && inputs.reply_to != ''
+        run: gh issue comment "$REPLY_TO" --body "❌ ネタ候補の作成に失敗しました。[実行ログ]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) を確認してください。"

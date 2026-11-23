@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ブログ記事の下書きからレビュー、Qiita への投稿まで、このフォルダの仕組みを図解します。">
+  <title>記事が届くまでの仕組み | Blog フォルダガイド</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17243b;
+      --muted: #526179;
+      --blue: #3156b9;
+      --blue-soft: #edf2ff;
+      --teal: #087361;
+      --teal-soft: #e6f7f2;
+      --purple: #6b50aa;
+      --line: #dce4ef;
+      --paper: #f5f7fb;
+      --white: #fff;
+      --shadow: 0 15px 40px rgba(25, 45, 80, .07);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Segoe UI", "Yu Gothic UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      font-size: 15px;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #234aa7; text-underline-offset: .2em; }
+    a:hover { text-decoration-thickness: 2px; }
+    a:focus-visible { outline: 3px solid #e19b29; outline-offset: 4px; }
+    code, pre {
+      font-family: Consolas, "Cascadia Mono", "Courier New", monospace;
+    }
+    code { overflow-wrap: anywhere; }
+    pre {
+      overflow: auto;
+      margin: 0;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: #15243b;
+      color: #f1f5ff;
+      font-size: 13px;
+      line-height: 1.75;
+      white-space: pre;
+    }
+    pre code { overflow-wrap: normal; }
+    h1, h2, h3, p { margin-top: 0; }
+    h2, h3 { line-height: 1.4; }
+    h2 { margin-bottom: 12px; font-size: clamp(24px, 3vw, 32px); letter-spacing: -.03em; }
+    h3 { margin-bottom: 8px; font-size: 17px; }
+    p:last-child { margin-bottom: 0; }
+    .wrap { width: min(1120px, calc(100% - 48px)); margin-inline: auto; }
+    .skip-link {
+      position: absolute;
+      z-index: 20;
+      top: -100px;
+      left: 16px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: white;
+      color: var(--ink);
+    }
+    .skip-link:focus { top: 16px; }
+
+    .hero {
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 85% 4%, rgba(108, 151, 238, .25), transparent 30%),
+        radial-gradient(circle at 54% 115%, rgba(49, 171, 152, .14), transparent 36%),
+        #101c33;
+      color: #fff;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, .13);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: .03em; }
+    .brand-mark {
+      display: grid;
+      width: 35px;
+      height: 35px;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, .28);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .08);
+      color: #a7e4d7;
+      font-size: 17px;
+      line-height: 1;
+    }
+    .topbar-note { color: #c5d3e8; font-size: 12px; letter-spacing: .07em; }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      align-items: center;
+      gap: 64px;
+      padding: 70px 0 76px;
+    }
+    .eyebrow {
+      margin-bottom: 13px;
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .17em;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+    .hero .eyebrow { color: #91d6c9; }
+    .hero h1 {
+      margin-bottom: 21px;
+      font-size: clamp(34px, 4.2vw, 52px);
+      line-height: 1.35;
+      letter-spacing: -.05em;
+    }
+    .hero h1 span { color: #a5e3d6; }
+    .hero-copy { max-width: 590px; margin-bottom: 25px; color: #d1ddee; font-size: 15px; }
+    .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hero-tags span {
+      padding: 5px 11px;
+      border: 1px solid rgba(255, 255, 255, .19);
+      border-radius: 999px;
+      color: #e0eaf7;
+      font-size: 12px;
+    }
+    .hero-board {
+      padding: 23px;
+      border: 1px solid rgba(255, 255, 255, .17);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .07);
+      box-shadow: 0 20px 55px rgba(0, 0, 0, .15);
+    }
+    .board-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 17px;
+      color: #d8e6f6;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .board-dots { color: #83c8ba; letter-spacing: 3px; }
+    .mini-flow { margin: 0; padding: 0; list-style: none; }
+    .mini-flow li {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-height: 63px;
+      padding: 11px 13px;
+      border: 1px solid rgba(255, 255, 255, .13);
+      border-radius: 11px;
+      background: rgba(8, 21, 39, .38);
+    }
+    .mini-flow li + li { margin-top: 14px; }
+    .mini-flow li + li::before {
+      content: "↓";
+      position: absolute;
+      top: -15px;
+      left: 22px;
+      color: #8fcfc2;
+      font-size: 15px;
+      line-height: 1;
+    }
+    .mini-num {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      place-items: center;
+      border-radius: 9px;
+      background: rgba(147, 213, 200, .15);
+      color: #a7e4d7;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .mini-flow strong, .mini-flow small { display: block; }
+    .mini-flow strong { line-height: 1.4; }
+    .mini-flow small { color: #bdcce1; font-size: 11px; }
+    .hero-foot { margin-top: 15px; color: #c6d6e8; font-size: 11px; }
+
+    .jump-bar {
+      position: sticky;
+      z-index: 10;
+      top: 0;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .97);
+    }
+    .jump-links {
+      display: flex;
+      gap: 26px;
+      overflow-x: auto;
+      padding-block: 14px;
+      white-space: nowrap;
+    }
+    .jump-links a { color: #45536b; font-size: 12px; font-weight: 700; text-decoration: none; }
+    .jump-links a:hover { color: var(--blue); }
+    section { scroll-margin-top: 82px; }
+    .section { margin-block: 80px; }
+    .section-head { max-width: 760px; margin-bottom: 27px; }
+    .section-head p:last-child { color: var(--muted); }
+    .section-head .eyebrow { margin-bottom: 9px; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: var(--white);
+      box-shadow: var(--shadow);
+    }
+    .source { margin-top: 14px; color: #64728a; font-size: 12px; }
+    .source a { font-weight: 600; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #eff2f8;
+      color: #4d5b73;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+    .chip.auto { background: var(--teal-soft); color: #076451; }
+    .chip.optional { background: #f1ebfb; color: #68479e; }
+
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .flow-card {
+      position: relative;
+      min-width: 0;
+      min-height: 208px;
+      padding: 19px 16px 16px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: white;
+      box-shadow: var(--shadow);
+    }
+    .flow-card:not(:last-child)::after {
+      content: "›";
+      position: absolute;
+      z-index: 1;
+      top: 42%;
+      right: -15px;
+      display: grid;
+      width: 18px;
+      height: 25px;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--paper);
+      color: #8d9ab0;
+      font-size: 23px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .flow-num { display: block; margin-bottom: 13px; color: #7486a4; font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+    .flow-card h3 { margin-bottom: 5px; font-size: 16px; }
+    .flow-card p { margin-bottom: 12px; color: var(--muted); font-size: 13px; }
+    .flow-card:last-child { border-color: #b7ddd3; background: #f6fdfb; }
+    .under-note {
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .under-note strong { flex: 0 0 auto; color: var(--ink); }
+
+    .two-col { display: grid; grid-template-columns: 1.13fr .87fr; gap: 24px; align-items: start; }
+    .steps { padding: 7px 25px; }
+    .step { display: grid; grid-template-columns: 41px 1fr; gap: 13px; padding: 21px 0; }
+    .step + .step { border-top: 1px solid #edf0f5; }
+    .step-num {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border-radius: 11px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .step p { margin-bottom: 0; color: var(--muted); font-size: 14px; }
+    .step .source { margin-top: 7px; }
+    .side-card { padding: 25px; }
+    .side-card h3 { font-size: 18px; }
+    .side-card > p { color: var(--muted); font-size: 13px; }
+    .side-card ul, .plain-list { margin: 15px 0 0; padding-left: 20px; color: var(--muted); font-size: 13px; }
+    .side-card li + li, .plain-list li + li { margin-top: 7px; }
+    .notice {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-left: 3px solid #d59a3d;
+      border-radius: 0 10px 10px 0;
+      background: #fff7e9;
+      color: #614a29;
+      font-size: 13px;
+    }
+    .notice strong { color: #49371d; }
+
+    .publish-panel {
+      padding: 30px;
+      border: 1px solid #cddbf1;
+      border-radius: 19px;
+      background: linear-gradient(135deg, #f8fbff, #edf5fd);
+    }
+    .publish-flow {
+      display: grid;
+      grid-template-columns: 1fr .9fr .8fr;
+      gap: 26px;
+      align-items: stretch;
+    }
+    .publish-node {
+      position: relative;
+      min-width: 0;
+      padding: 20px;
+      border: 1px solid #d6e1f1;
+      border-radius: 14px;
+      background: white;
+    }
+    .publish-node:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      top: calc(50% - 15px);
+      right: -23px;
+      color: #7d93bb;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .publish-node h3 { margin: 10px 0 6px; font-size: 16px; }
+    .publish-node p { color: var(--muted); font-size: 13px; }
+    .publish-node .or { display: block; margin: 6px 0; color: #72819a; font-size: 11px; font-weight: 700; }
+    .publish-foot { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 19px; }
+    .publish-foot p { margin: 0; color: #465a76; font-size: 13px; }
+    .publish-foot strong { color: #253d62; }
+    .preview { margin-top: 20px; padding: 23px 25px; }
+    .preview-grid { display: grid; grid-template-columns: 1fr .95fr; gap: 25px; align-items: center; }
+    .preview p { color: var(--muted); font-size: 13px; }
+
+    .roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .role { padding: 22px; }
+    .role-label { margin-bottom: 13px; color: var(--purple); font-size: 11px; font-weight: 800; letter-spacing: .1em; }
+    .role p { color: var(--muted); font-size: 13px; }
+    .role .source { margin-bottom: 0; }
+    .verify-flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin: 20px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .verify-flow li { display: flex; align-items: center; gap: 8px; }
+    .verify-flow li:not(:last-child)::after { content: "→"; color: #91a0b7; font-weight: 700; }
+    .verify-flow span {
+      padding: 7px 11px;
+      border: 1px solid #dfe5f1;
+      border-radius: 9px;
+      background: white;
+      color: #3d4d67;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .verify-box { margin-top: 18px; padding: 23px 25px; background: #faf8fe; }
+    .verify-box p { color: var(--muted); font-size: 13px; }
+    .verify-box .notice { margin-top: 15px; }
+
+    .case {
+      display: grid;
+      grid-template-columns: .7fr 1.3fr;
+      gap: 30px;
+      padding: 28px;
+      border: 1px solid #cbe5de;
+      border-radius: 17px;
+      background: #f5fcf9;
+    }
+    .case p { color: #46655e; font-size: 13px; }
+    .case-track { display: grid; gap: 9px; }
+    .case-item {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid #d9eae4;
+      border-radius: 11px;
+      background: white;
+      font-size: 13px;
+    }
+    .case-item b { color: var(--teal); }
+    .case-item span { min-width: 0; }
+    .case-item small { display: block; color: var(--muted); font-size: 12px; }
+
+    .file-map { overflow: hidden; }
+    .file-row {
+      display: grid;
+      grid-template-columns: minmax(150px, .7fr) 1.6fr;
+      gap: 18px;
+      padding: 15px 22px;
+      font-size: 13px;
+    }
+    .file-row + .file-row { border-top: 1px solid #edf0f5; }
+    .file-row code { color: #244b9e; font-weight: 700; }
+    .file-row p { margin: 0; color: var(--muted); }
+    .utility-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+    .utility { padding: 23px; }
+    .utility p, .utility li { color: var(--muted); font-size: 13px; }
+    .utility ul { margin: 10px 0 0; padding-left: 20px; }
+    .utility li + li { margin-top: 8px; }
+    .utility code { font-size: 12px; }
+    .utility .notice { margin-top: 15px; }
+
+    .recap {
+      margin-bottom: 70px;
+      padding: 30px;
+      border-radius: 18px;
+      background: #182b47;
+      color: white;
+    }
+    .recap h2 { margin-bottom: 17px; font-size: 23px; }
+    .recap ol { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin: 0; padding: 0; list-style: none; counter-reset: recap; }
+    .recap li {
+      counter-increment: recap;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, .15);
+      border-radius: 11px;
+      background: rgba(255, 255, 255, .05);
+      color: #dce8f7;
+      font-size: 13px;
+    }
+    .recap li::before { content: "0" counter(recap); display: block; margin-bottom: 5px; color: #a2dfd3; font-size: 11px; font-weight: 800; }
+    footer { padding: 26px 0 34px; border-top: 1px solid var(--line); color: #66748a; font-size: 12px; }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; }
+
+    @media (max-width: 860px) {
+      .hero-grid { grid-template-columns: 1fr; gap: 32px; padding: 48px 0 52px; }
+      .hero-board { max-width: 560px; }
+      .workflow { grid-template-columns: 1fr; gap: 14px; }
+      .flow-card { min-height: 0; }
+      .flow-num { margin-bottom: 5px; }
+      .flow-card:not(:last-child)::after {
+        content: "↓";
+        top: auto;
+        right: calc(50% - 12px);
+        bottom: -17px;
+        width: 24px;
+        height: 20px;
+        font-size: 15px;
+      }
+      .two-col, .case { grid-template-columns: 1fr; }
+      .roles { grid-template-columns: 1fr; }
+      .role { padding: 20px; }
+      .role-label { margin-bottom: 6px; }
+    }
+    @media (max-width: 620px) {
+      .wrap { width: min(100% - 32px, 1120px); }
+      .topbar { padding: 18px 0; }
+      .topbar-note { font-size: 10px; }
+      .hero h1 { font-size: 32px; }
+      .jump-links { gap: 20px; }
+      .section { margin-block: 58px; }
+      .under-note { display: block; }
+      .under-note strong { display: block; margin-bottom: 4px; }
+      .publish-panel { padding: 20px; }
+      .publish-flow, .publish-foot, .preview-grid, .utility-grid, .recap ol { grid-template-columns: 1fr; }
+      .publish-flow { gap: 20px; }
+      .publish-node:not(:last-child)::after {
+        content: "↓";
+        top: auto;
+        right: calc(50% - 6px);
+        bottom: -22px;
+      }
+      .file-row { grid-template-columns: 1fr; gap: 3px; padding: 14px 17px; }
+      .case, .recap { padding: 22px; }
+      .recap { margin-bottom: 50px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    @media print {
+      .jump-bar, .skip-link { display: none; }
+      .hero, .recap { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .section { margin-block: 35px; }
+      .card, .flow-card, .case, .publish-node { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">本文へ移動</a>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">B.</span><span>Blog フォルダガイド</span></div>
+        <div class="topbar-note">REPOSITORY GUIDE / 2026.11.21</div>
+      </div>
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">From draft to Qiita</p>
+          <h1>記事が届くまでの<br><span>「仕組み」をひと目で。</span></h1>
+          <p class="hero-copy">このフォルダは、Microsoft 365 Copilot や Copilot Studio の記事を、書いて、確かめて、Qiita に届けるための作業場です。人が進める作業と、自動で動く部分を分けて見ていきましょう。</p>
+          <div class="hero-tags" aria-label="ガイドの内容">
+            <span>下書きとレビュー</span><span>GitHub Actions</span><span>検証と資料作成</span>
+          </div>
+        </div>
+        <div class="hero-board">
+          <div class="board-title"><span>ひとことで言うと</span><span class="board-dots" aria-hidden="true">● ● ●</span></div>
+          <ol class="mini-flow">
+            <li><span class="mini-num">01</span><span><strong>このフォルダ</strong><small>原稿・画像・作業ルールを置く</small></span></li>
+            <li><span class="mini-num">02</span><span><strong>GitHub Actions</strong><small>条件がそろうと投稿処理を実行</small></span></li>
+            <li><span class="mini-num">03</span><span><strong>Qiita</strong><small>記事を投稿・更新する</small></span></li>
+          </ol>
+          <p class="hero-foot">※ 投稿の前には、人による確認と公開準備があります。</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="jump-bar" aria-label="ページ内ナビゲーション">
+    <div class="wrap jump-links">
+      <a href="#overview">全体像</a>
+      <a href="#writing">記事づくり</a>
+      <a href="#publish">自動投稿</a>
+      <a href="#support">AI と検証</a>
+      <a href="#example">実例</a>
+      <a href="#files">フォルダの役割</a>
+    </div>
+  </nav>
+
+  <main id="main" class="wrap">
+    <section id="overview" class="section">
+      <div class="section-head">
+        <p class="eyebrow">01 / The big picture</p>
+        <h2>まずは、記事が届くまでの全体像</h2>
+        <p>基本は「下書き → 確認 → 公開準備」。最後の投稿処理を GitHub Actions が担当します。</p>
+      </div>
+      <ol class="workflow">
+        <li class="flow-card">
+          <span class="flow-num">STEP 01</span>
+          <h3>調べる</h3>
+          <p>テーマや公式情報を確認。必要なら製品を実際に検証します。</p>
+          <span class="chip">人 ＋ 必要に応じて AI</span>
+        </li>
+        <li class="flow-card">
+          <span class="flow-num">STEP 02</span>
+          <h3>下書きを書く</h3>
+          <p><code>drafts/</code> に Markdown 形式で記事を作ります。</p>
+          <span class="chip">人 ＋ 執筆支援</span>
+        </li>
+        <li class="flow-card">
+          <span class="flow-num">STEP 03</span>
+          <h3>確認・修正する</h3>
+          <p>内容や文体をレビューし、指摘を確認して修正します。</p>
+          <span class="chip">人 ＋ レビュー支援</span>
+        </li>
+        <li class="flow-card">
+          <span class="flow-num">STEP 04</span>
+          <h3>公開を準備する</h3>
+          <p>画像や公開範囲を確認し、原稿を <code>public/</code> に移します。</p>
+          <span class="chip">人の操作</span>
+        </li>
+        <li class="flow-card">
+          <span class="flow-num">STEP 05</span>
+          <h3>投稿・更新する</h3>
+          <p><code>main</code> への push などをきっかけに Qiita へ反映します。</p>
+          <span class="chip auto">条件を満たすと自動</span>
+        </li>
+      </ol>
+      <div class="under-note"><strong>ここがポイント</strong><span>AI 向けのエージェントや手順書は作業を支援するための定義です。記事投稿を実行する GitHub Actions とは別の仕組みです。</span></div>
+    </section>
+
+    <section id="writing" class="section">
+      <div class="section-head">
+        <p class="eyebrow">02 / Writing &amp; review</p>
+        <h2>人と AI で、原稿を整える</h2>
+        <p>原稿は Markdown で管理します。AI に執筆やレビューを頼めますが、確認や公開の判断は人が行う流れです。</p>
+      </div>
+      <div class="two-col">
+        <div class="steps card">
+          <article class="step">
+            <span class="step-num">01</span>
+            <div>
+              <h3>情報を集める</h3>
+              <p>テーマを決め、公式ドキュメントなどを確認します。操作手順を紹介する場合は、画面のスクリーンショットも用意します。</p>
+            </div>
+          </article>
+          <article class="step">
+            <span class="step-num">02</span>
+            <div>
+              <h3><code>drafts/</code> で下書き</h3>
+              <p><code>yyyymmdd_slug.md</code> の形式で保存します。執筆用のスキルには、文体や構成のガイドがあります。</p>
+              <p class="source"><a href="../.github/skills/blog-writer/SKILL.md">執筆スキルを見る</a></p>
+            </div>
+          </article>
+          <article class="step">
+            <span class="step-num">03</span>
+            <div>
+              <h3>レビューして直す</h3>
+              <p>レビュー役は技術的な正確性・文体・構成などを確認し、指摘を返します。レビュー役自身は記事を編集しません。</p>
+              <p class="source"><a href="../.github/agents/blog-reviewer.agent.md">レビュー役の定義を見る</a></p>
+            </div>
+          </article>
+          <article class="step">
+            <span class="step-num">04</span>
+            <div>
+              <h3><code>public/</code> に移して最終確認</h3>
+              <p>タイトル、タグ、公開範囲、画像やリンクを確認します。画像は、Qiita の読者からも参照できるか確認します。</p>
+              <p class="source"><a href="../.github/prompts/publish-checklist.prompt.md">公開前チェックを見る</a></p>
+            </div>
+          </article>
+        </div>
+        <aside class="side-card card">
+          <p class="eyebrow">Article metadata</p>
+          <h3>記事の先頭にある設定</h3>
+          <p>冒頭の <strong>フロントマター</strong> に、タイトルやタグ、公開範囲などを記入します。</p>
+          <pre><code>---
+title: "記事のタイトル"
+tags:
+  - CopilotStudio
+private: true
+---</code></pre>
+          <ul>
+            <li><code>title</code>：記事のタイトル</li>
+            <li><code>tags</code>：記事に関連するタグ</li>
+            <li><code>private</code>：Qiita での公開範囲</li>
+            <li><code>id</code>：既存記事の識別に使う管理情報</li>
+          </ul>
+          <div class="notice"><strong>「下書き」と「限定公開」は別です。</strong><br><code>private: true</code> は限定公開として投稿され得る設定で、未投稿を保証するものではありません。<code>drafts/</code> も、この自動投稿の対象外という置き場所であり、Qiita 上に記事が存在しないことまでは保証しません。</div>
+          <p class="source"><a href="../.github/instructions/qiita-article.instructions.md">記事ルールを見る</a> · <a href="../public/20260421_flow-input-parameter-types.md">実際の記事を見る</a></p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="publish" class="section">
+      <div class="section-head">
+        <p class="eyebrow">03 / Publishing</p>
+        <h2>どのタイミングで自動投稿される？</h2>
+        <p>設定されているのは、GitHub 上で動くワークフローです。ローカルでファイルを保存しただけでは起動しません。</p>
+      </div>
+      <div class="publish-panel">
+        <div class="publish-flow">
+          <div class="publish-node">
+            <span class="chip">きっかけ</span>
+            <h3><code>main</code> に push</h3>
+            <p><code>public/**</code> の変更を含む push が対象です。<span class="or">または</span>GitHub Actions 画面から手動実行できます。</p>
+          </div>
+          <div class="publish-node">
+            <span class="chip auto">GitHub Actions</span>
+            <h3>投稿アクションを実行</h3>
+            <p>Qiita CLI の <code>publish</code> アクションを呼び出します。</p>
+          </div>
+          <div class="publish-node">
+            <span class="chip">投稿先</span>
+            <h3>Qiita に反映</h3>
+            <p>対象の記事を投稿・更新します。実際の成否は実行結果で確認します。</p>
+          </div>
+        </div>
+        <div class="publish-foot">
+          <p><strong>対象外の例：</strong><code>drafts/</code> だけを変更した push では、このワークフローは起動しません。手動実行は別です。</p>
+          <p><strong>必要な設定：</strong>GitHub のシークレット <code>QIITA_TOKEN</code>。現在の登録状況や投稿結果は、このフォルダだけでは確認できません。</p>
+        </div>
+        <p class="source"><a href="../.github/workflows/publish.yml">自動投稿の設定ファイルを見る</a></p>
+      </div>
+      <div class="preview card">
+        <div class="preview-grid">
+          <div>
+            <p class="eyebrow">Local preview</p>
+            <h3>投稿前に見た目を確認したいとき</h3>
+            <p>リポジトリのルートで依存パッケージを用意し、Qiita CLI のプレビューを起動します。<code>public/</code> にある原稿の確認に使います。</p>
+            <p>設定上のアクセス先は <code>localhost:8888</code>。ロックファイルに記載された CLI の要件は Node.js 20 以上です。</p>
+            <p class="source"><a href="../qiita.config.json">プレビュー設定</a> · <a href="../package-lock.json">依存関係</a></p>
+          </div>
+          <pre><code>npm ci
+npx qiita preview</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="support" class="section">
+      <div class="section-head">
+        <p class="eyebrow">04 / AI support</p>
+        <h2>AI に頼めることと、検証の流れ</h2>
+        <p><code>.github/</code> には役割・手順・定型の依頼文が置かれています。必要に応じて Copilot が参照するためのものです。</p>
+      </div>
+      <div class="roles">
+        <article class="role card">
+          <p class="role-label">WRITER / 執筆</p>
+          <h3>記事を書く</h3>
+          <p><code>blog-writer</code> が文体やテンプレートに沿った下書き作成を支援します。</p>
+          <p class="source"><a href="../.github/agents/blog-writer.agent.md">エージェントの定義</a> · <a href="../.github/skills/blog-writer/SKILL.md">詳しい手順</a></p>
+        </article>
+        <article class="role card">
+          <p class="role-label">REVIEWER / 確認</p>
+          <h3>記事をレビューする</h3>
+          <p><code>blog-reviewer</code> が改善点を指摘。記事ファイルの編集は行いません。</p>
+          <p class="source"><a href="../.github/agents/blog-reviewer.agent.md">エージェントの定義</a> · <a href="../.github/skills/article-reviewer/SKILL.md">詳しい手順</a></p>
+        </article>
+        <article class="role card">
+          <p class="role-label">VERIFIER / 検証</p>
+          <h3>動きを試す</h3>
+          <p><code>copilot-studio-verifier</code> がテストやスクリーンショット取得を支援します。</p>
+          <p class="source"><a href="../.github/agents/copilot-studio-verifier.agent.md">エージェントの定義</a> · <a href="../.github/skills/copilot-studio-verifier/SKILL.md">詳しい手順</a></p>
+        </article>
+      </div>
+      <div class="verify-box card">
+        <span class="chip optional">必要なときだけ</span>
+        <h3>Copilot Studio を検証する場合</h3>
+        <p>記事作成とは別に、検証対象を決めてシナリオを承認したうえで、ブラウザ操作・記録を行う手順が用意されています。</p>
+        <ol class="verify-flow">
+          <li><span>検証の依頼</span></li>
+          <li><span>シナリオ作成・承認</span></li>
+          <li><span>ブラウザでテスト</span></li>
+          <li><span>画像・結果を記録</span></li>
+          <li><span>必要なら記事化</span></li>
+        </ol>
+        <div class="notice">この手順は Playwright MCP とサインイン済みの環境を前提とします。設定は <code>.vscode/mcp.json</code>（Edge・Playwright 専用プロファイル）にあります。初回は開いたブラウザで手動サインインしてください。</div>
+        <p class="source"><a href="../.github/prompts/verify-agent.prompt.md">検証の依頼文</a> · <a href="../.github/prompts/verify-to-article.prompt.md">検証結果から記事を作る依頼文</a> · <a href="../.vscode/mcp.json">MCP の設定</a></p>
+      </div>
+      <div class="verify-box card">
+        <span class="chip optional">自動化</span>
+        <h3>毎週のネタ出しから投稿まで（GitHub のコメントで進める）</h3>
+        <p>月曜朝に AI がネタ候補を Issue にします（<code>/ideas テーマ</code> とコメントすれば、いつでもテーマを指定して出せます）。自分のアイデアは <code>/add-idea タイトル</code> で候補に追加できます。あとはコメントのコマンドで下書き・レビュー・修正・公開準備を進めます。スクリーンショットはローカルで撮影し、ms-tech-validation の <code>mask.py</code> で機密情報を隠してから記事に入れます。最後に PR をマージすると Qiita に投稿されます。</p>
+        <ol class="verify-flow">
+          <li><span>ネタ候補 Issue（毎週 / /ideas / /add-idea）</span></li>
+          <li><span>/write で下書き PR と自動レビュー</span></li>
+          <li><span>/revise で修正・感想を反映</span></li>
+          <li><span>ローカルでスクショ撮影・マスク</span></li>
+          <li><span>/publish → マージで投稿</span></li>
+        </ol>
+        <p class="source"><a href="../docs/article-automation.md">設定と使い方</a> · <a href="../.github/workflows/article-commands.yml">コマンドのワークフロー</a> · <a href="../.github/skills/article-screenshots/SKILL.md">撮影スキル</a></p>
+      </div>
+    </section>
+
+    <section id="example" class="section">
+      <div class="section-head">
+        <p class="eyebrow">05 / A real example</p>
+        <h2>このフォルダにある実例</h2>
+        <p>エージェントフローの日付入力を題材にした記事では、検証画面と原稿が次のように残されています。</p>
+      </div>
+      <div class="case">
+        <div>
+          <span class="chip auto">2026年4月の記録</span>
+          <h3>検証したことを<br>記事にまとめる</h3>
+          <p>記事では、日付を文字列としてフローに渡し、フロー側で表示形式を整える方法を紹介しています。</p>
+          <p>これは当時の記事内容の紹介であり、現在の製品仕様や Qiita 上の状態を再確認したものではありません。</p>
+        </div>
+        <div class="case-track">
+          <div class="case-item"><b>01</b><span>Copilot Studio の画面を確認<small>日付入力やフロー呼び出しを調べる</small></span></div>
+          <div class="case-item"><b>02</b><span>スクリーンショットを保存<small><code>images/verification/20260402_flow-input-types/</code> に6枚</small></span></div>
+          <div class="case-item"><b>03</b><span>記事としてまとめる<small><a href="../public/20260421_flow-input-parameter-types.md">公開対象の Markdown を見る</a></small></span></div>
+          <div class="case-item"><b>04</b><span>Qiita に投稿した記録<small><a href="20260421_ブログ記事作成報告.md">当時の作業報告を見る</a>（Qiita CLI を使用）</small></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="files" class="section">
+      <div class="section-head">
+        <p class="eyebrow">06 / Folder map</p>
+        <h2>どこに、何がある？</h2>
+        <p>日常的に見る場所は <code>drafts/</code>、<code>public/</code>、<code>images/</code>。自動投稿や AI 向けの設定は <code>.github/</code> にまとまっています。</p>
+      </div>
+      <div class="file-map card">
+        <div class="file-row"><code>drafts/</code><p>執筆中の Markdown 原稿。ここだけの変更は自動投稿のきっかけになりません。</p></div>
+        <div class="file-row"><code>public/</code><p>Qiita CLI の投稿対象となる原稿。配置しただけでは投稿済みとは限りません。</p></div>
+        <div class="file-row"><code>images/</code><p>記事や検証で使う画像。<code>verification/</code> 配下には検証時の画面があります。</p></div>
+        <div class="file-row"><code>.github/</code><p><code>agents/</code> は役割、<code>skills/</code> は詳しい手順、<code>prompts/</code> は定型の依頼文。<code>workflows/</code> に自動投稿の設定があります。</p></div>
+        <div class="file-row"><code>scripts/</code><p>PowerPoint の作成やテンプレート加工を補助する Python スクリプト。</p></div>
+        <div class="file-row"><code>report/</code><p>過去の作業報告と、このガイドを置く場所。</p></div>
+        <div class="file-row"><code>package.json<br>qiita.config.json</code><p>Qiita CLI の依存関係とプレビューなどの設定。<code>package-lock.json</code> は依存関係を固定します。</p></div>
+      </div>
+      <div class="utility-grid">
+        <div class="utility card">
+          <p class="eyebrow">Optional / PowerPoint</p>
+          <h3>スライド用スクリプトは別の道具</h3>
+          <ul>
+            <li><a href="../scripts/create_pptx.py"><code>create_pptx.py</code></a>：テンプレートを使って比較資料を作成。</li>
+            <li><a href="../scripts/generate_pptx.py"><code>generate_pptx.py</code></a>：変換済みテンプレートを使って比較資料を作成。</li>
+            <li><a href="../scripts/add_layouts_to_template.py"><code>add_layouts_to_template.py</code></a>：テンプレートにレイアウトを追加。元ファイルを上書きします。</li>
+          </ul>
+          <div class="notice">スライドの内容やファイルの場所はコード内に固定されています。現在のフォルダには <code>Template/</code> が見当たらず、古い出力先を指す設定もあるため、使う前に必要なファイル・依存関係・上書き先を確認してください。Qiita の自動投稿時にこれらが動く設定はありません。</div>
+        </div>
+        <div class="utility card">
+          <p class="eyebrow">Good to know</p>
+          <h3>設定を見るときの補足</h3>
+          <ul>
+            <li>共通ルールと執筆スキルは <strong>Qiita 前提</strong>。一部のエージェントやプロンプトには、以前の Zenn に関する記述も残っています。</li>
+            <li>説明上の保存先 <code>verification/</code> や <code>snippets/</code> は、今回確認したルートにはまだありません。</li>
+            <li>公開記事の実例では、Qiita で画像を参照できるよう GitHub の raw URL を使用しています。</li>
+          </ul>
+          <p class="source"><a href="../.github/copilot-instructions.md">共通ルール</a> · <a href="../report/20260421_Qiita自動投稿と構成アップデート報告.md">構成変更の作業報告</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="recap" aria-labelledby="recap-title">
+      <h2 id="recap-title">迷ったら、この3つだけ。</h2>
+      <ol>
+        <li>書いている間は <strong><code>drafts/</code></strong>。</li>
+        <li>内容と公開範囲を確認し、<strong><code>public/</code></strong> へ。</li>
+        <li><strong><code>main</code> に push</strong> すると、条件に応じて投稿処理が動く。</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Blog フォルダガイド · リポジトリ内のファイルをもとに作成</span>
+      <span>確認日：<time datetime="2026-11-21">2026年11月21日</time> · 外部サービスの現在の状態は未確認</span>
+    </div>
+  </footer>
+</body>
+</html>

@@ -16,7 +16,7 @@ description: >-
 ### 使用ツール
 
 - **Playwright MCP Server**: ブラウザ自動操作（`.vscode/mcp.json` で設定済み）
-- **Edge ブラウザ**: Profile 1 でログイン済みの Microsoft アカウントを使用
+- **Edge ブラウザ**: Playwright 専用の永続プロファイル（`~/.playwright-blog-edge-profile`）。初回に Microsoft アカウントで手動ログインしておく
 
 ### デフォルト検証環境
 
@@ -25,7 +25,7 @@ description: >-
 
 ### 認証
 
-- Copilot Studio へのログインは **Edge の Profile 1** に保存された Microsoft Entra ID セッションを利用する。
+- Copilot Studio へのログインは、Playwright 専用プロファイルに保存された Microsoft Entra ID セッションを利用する。
 - セッションが切れている場合はユーザーに手動ログインを依頼する。
 
 ### スクリーンショットの保存先
@@ -156,9 +156,9 @@ description: >-
 
 `.vscode/mcp.json` で設定済み。変更が必要な場合はユーザーに案内する。
 
-- **ブラウザ**: Edge（`channel: msedge`）
-- **プロファイル**: `Profile 1`（Microsoft アカウントログイン済み）
-- **ヘッドレスモード**: `false`（テスト中の画面確認用）
+- **ブラウザ**: Edge（`--browser msedge`）
+- **プロファイル**: `~/.playwright-blog-edge-profile`（Playwright 専用の永続プロファイル）
+- **ヘッドレスモード**: 使わない（テスト中の画面確認用）
 
 ### 主な操作パターン
 

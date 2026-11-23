@@ -14,8 +14,9 @@ images/            # 記事で使用するスクリーンショット・図
 images/verification/ # 検証テストのスクリーンショット
 verification/      # Copilot Studio 検証レポート
 snippets/          # 記事内で参照するコードスニペット
-scripts/           # MD→PPTX 変換などのユーティリティ
+scripts/           # MD→PPTX 変換、記事自動化の補助スクリプト（blog_automation.py）
 Template/          # PowerPoint テンプレート
+docs/              # 運用ドキュメント（記事作成の自動化手順など）
 ```
 
 ## ファイル命名規則
@@ -39,3 +40,5 @@ Template/          # PowerPoint テンプレート
 - **記事テンプレート・文体ルール・執筆ワークフロー**: `.github/skills/blog-writer/` スキルを参照
 - **レビュー観点**: `.github/skills/article-reviewer/` スキルを参照
 - **Copilot Studio 検証**: `.github/skills/copilot-studio-verifier/` スキルを参照
+- **記事用スクリーンショットの撮影・マスク**: `.github/skills/article-screenshots/` スキルを参照
+- **毎週のネタ出し〜投稿の自動化**: `docs/article-automation.md` を参照（記事中の `<!-- SHOT: ... -->` は撮影待ちのプレースホルダー）

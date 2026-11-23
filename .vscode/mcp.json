@@ -1,0 +1,19 @@
+{
+  "servers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser",
+        "msedge",
+        "--user-data-dir",
+        "${userHome}/.playwright-blog-edge-profile",
+        "--viewport-size",
+        "1440x900",
+        "--output-dir",
+        "${workspaceFolder}/images/_raw"
+      ]
+    }
+  }
+}

@@ -1,0 +1,39 @@
+name: Run Copilot CLI
+description: プロンプトファイルを Copilot CLI（プログラムモード）で実行する。入力は呼び出し前に GITHUB_ENV で渡す。
+
+inputs:
+  prompt-file:
+    description: 実行するプロンプトファイルのパス
+    required: true
+  token:
+    description: Copilot Requests 権限を持つ fine-grained PAT
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Copilot CLI
+      shell: bash
+      run: command -v copilot >/dev/null || npm install -g @github/copilot
+
+    - name: Run Copilot CLI
+      shell: bash
+      env:
+        COPILOT_GITHUB_TOKEN: ${{ inputs.token }}
+        PROMPT_FILE: ${{ inputs.prompt-file }}
+      run: |
+        if [ -z "$COPILOT_GITHUB_TOKEN" ]; then
+          echo "::error::シークレット COPILOT_PAT が未設定です。docs/article-automation.md を参照してください。"
+          exit 1
+        fi
+        # git push や任意コマンドの実行は許可せず、ファイル書き込みと読み取り系コマンドだけを許可する。
+        # AI はシェルで環境変数を読めないため、入力値をプロンプト末尾に書き出して渡す
+        prompt="$(cat "$PROMPT_FILE")"$'\n\n## 実行時の値（環境変数）\n'
+        for v in OUTPUT_FILE THEME_FILE IDEAS_FILE IDEA_NUMBER EXTRA_NOTE_FILE TODAY ARTICLE FEEDBACK_FILE REVIEW_FILE; do
+          if [ -n "${!v:-}" ]; then prompt+="- \`$v\` = \`${!v}\`"$'\n'; fi
+        done
+        copilot -p "$prompt" \
+          --no-ask-user -s \
+          --allow-tool='write,shell(ls:*),shell(cat:*),shell(grep:*),shell(find:*),shell(head:*),shell(wc:*)' \
+          --deny-tool='shell(git push)' \
+          --allow-url='learn.microsoft.com'
